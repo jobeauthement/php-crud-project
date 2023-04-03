@@ -1,10 +1,11 @@
 <?php
 // Include the 'connect.php' file, which contains the code to establish a database connection
-
 include 'connect.php';
 
-// Check if a form has been submitted, and assign the form field values to variables
+// Initialize the error message variable
+$error_message = '';
 
+// Check if a form has been submitted, and assign the form field values to variables
 if (isset($_POST['submit'])) {
     $name = mysqli_real_escape_string($con, $_POST['name']);
     $email = mysqli_real_escape_string($con, $_POST['email']);
@@ -12,25 +13,29 @@ if (isset($_POST['submit'])) {
     $password = mysqli_real_escape_string($con, $_POST['password']);
 
     // Validate form data
-
     if (empty($name) || empty($email) || empty($mobile) || empty($password)) {
-        die('Error: All fields are required.');
-    }
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        die('Error: Invalid email format.');
-    }
-
-    // Create an SQL INSERT statement to insert data into the 'crud' table, and execute the query using the $con database connection. If the query is successful, redirect the user to a success page. If the query fails, output a MySQL error message to the browser.
-
-    $sql = "INSERT INTO `crud` (`name`,`email`,`mobile`,`password`) 
-    values('$name','$email','$mobile','$password')";
-    $result = mysqli_query($con, $sql);
-    if ($result) {
-        header('Location: success.php');
-        exit;
+        $error_message = 'Error: All fields are required.';
+    } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error_message = 'Error: Invalid email format.';
     } else {
-        die(mysqli_error($con));
+        // Create an SQL INSERT statement to insert data into the 'crud' table, and execute the query using the $con database connection
+        $sql = "INSERT INTO `crud` (`name`,`email`,`mobile`,`password`) 
+                values('$name','$email','$mobile','$password')";
+        $result = mysqli_query($con, $sql);
+
+        // Check if the query was successful, and update the error message variable if there was an error
+        if ($result) {
+            header('Location: success.php');
+            exit;
+        } else {
+            $error_message = mysqli_error($con);
+        }
     }
+}
+
+// Display the error message, if there is one
+if (!empty($error_message)) {
+    echo '<p>' . $error_message . '</p>';
 }
 ?>
 
